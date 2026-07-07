@@ -1,5 +1,11 @@
 const makeWASocket = require("@whiskeysockets/baileys").default;
-const { useMultiFileAuthState } = require("@whiskeysockets/baileys");
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason
+} = require("@whiskeysockets/baileys");
+
+const QRCode = require("qrcode-terminal");
 const P = require("pino");
 
 async function startBot() {
