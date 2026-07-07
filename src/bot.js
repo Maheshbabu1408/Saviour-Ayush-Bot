@@ -1,8 +1,6 @@
-const makeWASocket = require("@whiskeysockets/baileys").default;
 const {
   default: makeWASocket,
   useMultiFileAuthState,
-  DisconnectReason
 } = require("@whiskeysockets/baileys");
 
 const QRCode = require("qrcode-terminal");
@@ -17,6 +15,17 @@ async function startBot() {
     });
 
     sock.ev.on("creds.update", saveCreds);
+
+    sock.ev.on("connection.update", ({ connection, qr }) => {
+        if (qr) {
+            console.log("📱 Scan this QR Code:");
+            QRCode.generate(qr, { small: true });
+        }
+
+        if (connection === "open") {
+            console.log("✅ WhatsApp Connected Successfully!");
+        }
+    });
 
     console.log("✅ Saviour Ayush Bot Started");
 }
