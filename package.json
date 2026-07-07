@@ -1,10 +1,14 @@
 {
   "name": "saviour-ayush-bot",
   "version": "1.0.0",
-  "description": "WhatsApp Bot for Saviour Ayush Hospital",
+  "description": "Saviour Ayush Hospital WhatsApp Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.7",
+    "pino": "^9.3.2",
+    "qrcode-terminal": "^0.12.0"
+  }
 }
