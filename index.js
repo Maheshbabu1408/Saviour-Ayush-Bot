@@ -1,1 +1,3 @@
-console.log("Saviour Ayush Bot Started");
+const { startBot } = require("./src/bot");
+
+startBot();
