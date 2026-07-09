@@ -1,39 +1,10 @@
-const {
-  default: makeWASocket,
-  useMultiFileAuthState,
-} = require("@whiskeysockets/baileys");
-
-const QRCode = require("qrcode-terminal");
-const P = require("pino");
-
-const config = require("../config/config");
+const { createConnection } = require("./connection");
 const handleMessage = require("./message");
 
 async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState("./session");
+  const sock = await createConnection();
 
-  const sock = makeWASocket({
-    auth: state,
-    logger: P({ level: "silent" }),
-    printQRInTerminal: false,
-  });
-
-  sock.ev.on("creds.update", saveCreds);
-
-  sock.ev.on("connection.update", ({ connection, qr, lastDisconnect }) => {
-    if (qr) {
-      console.log("\n📱 Scan this QR Code:\n");
-      QRCode.generate(qr, { small: true });
-    }
-
-    if (connection === "open") {
-      console.log(`✅ ${config.BOT_NAME} Connected Successfully`);
-    }
-
-    if (connection === "close") {
-      console.log(lastDisconnect);
-    }
-  });
+  console.log("✅ Bot Started");
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0];
