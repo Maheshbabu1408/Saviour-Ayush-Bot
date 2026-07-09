@@ -1,7 +1,6 @@
 const {
   default: makeWASocket,
   useMultiFileAuthState,
-  DisconnectReason,
 } = require("@whiskeysockets/baileys");
 
 const QRCode = require("qrcode-terminal");
@@ -19,7 +18,7 @@ async function startBot() {
 
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", async ({ connection, qr, lastDisconnect }) => {
+  sock.ev.on("connection.update", ({ connection, qr, lastDisconnect }) => {
     if (qr) {
       console.log("\n📱 Scan this QR Code:\n");
       QRCode.generate(qr, { small: true });
@@ -30,16 +29,7 @@ async function startBot() {
     }
 
     if (connection === "close") {
-      console.log("❌ Disconnected... Reconnecting");
-
-      const shouldReconnect =
-        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-
-      if (shouldReconnect) {
-        startBot();
-      } else {
-        console.log("⚠️ Logged out. Delete the session folder and scan again.");
-      }
+      console.log(lastDisconnect);
     }
   });
 
