@@ -1,11 +1,11 @@
 const {
   default: makeWASocket,
   useMultiFileAuthState,
+  DisconnectReason,
 } = require("@whiskeysockets/baileys");
 
 const QRCode = require("qrcode-terminal");
 const P = require("pino");
-
 const config = require("../config/config");
 
 async function startBot() {
@@ -14,18 +14,32 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     logger: P({ level: "silent" }),
+    printQRInTerminal: false,
   });
 
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", ({ connection, qr }) => {
+  sock.ev.on("connection.update", async ({ connection, qr, lastDisconnect }) => {
     if (qr) {
-      console.log("📱 Scan the QR Code below:");
+      console.log("\n📱 Scan this QR Code:\n");
       QRCode.generate(qr, { small: true });
     }
 
     if (connection === "open") {
-      console.log(`✅ ${config.BOT_NAME} is now online!`);
+      console.log(`✅ ${config.BOT_NAME} Connected Successfully`);
+    }
+
+    if (connection === "close") {
+      console.log("❌ Disconnected... Reconnecting");
+
+      const shouldReconnect =
+        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+
+      if (shouldReconnect) {
+        startBot();
+      } else {
+        console.log("⚠️ Logged out. Delete the session folder and scan again.");
+      }
     }
   });
 
@@ -37,7 +51,6 @@ async function startBot() {
 
     const jid = msg.key.remoteJid;
 
-    // Ignore group messages
     if (jid.endsWith("@g.us")) return;
 
     await sock.sendMessage(jid, {
