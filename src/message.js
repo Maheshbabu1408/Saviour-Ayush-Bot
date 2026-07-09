@@ -1,8 +1,13 @@
+const { getMenu } = require("./menu");
+
 async function handleMessage(sock, msg) {
   const jid = msg.key.remoteJid;
 
-  // Ignore groups
+  // Ignore group chats
   if (jid.endsWith("@g.us")) return;
+
+  // Ignore status updates
+  if (jid === "status@broadcast") return;
 
   const text =
     msg.message?.conversation ||
@@ -11,21 +16,43 @@ async function handleMessage(sock, msg) {
 
   if (!text) return;
 
-  await sock.sendMessage(jid, {
-    text: `🙏 *Welcome to Saviour Ayush Hospital* 🌿
+  switch (text.trim()) {
+    case "1":
+      await sock.sendMessage(jid, {
+        text: "📅 Please send your Name, Age, Phone Number and preferred Appointment Date.",
+      });
+      break;
 
-Namaste!
+    case "2":
+      await sock.sendMessage(jid, {
+        text: "🩺 Doctor Timings:\n\nMonday - Saturday\n🕘 9:00 AM - 8:00 PM",
+      });
+      break;
 
-Thank you for contacting *Saviour Ayush Hospital*.
+    case "3":
+      await sock.sendMessage(jid, {
+        text: "🌿 Treatments Available:\n\n• Ayurveda\n• Panchakarma\n• General Consultation\n• Pain Management",
+      });
+      break;
 
-Reply with:
+    case "4":
+      await sock.sendMessage(jid, {
+        text: "📍 Saviour Ayush Hospital\n\nhttps://maps.google.com/",
+      });
+      break;
 
-1️⃣ Book Appointment
-2️⃣ Doctor Timings
-3️⃣ Treatments
-4️⃣ Hospital Location
-5️⃣ Contact Us`,
-  });
+    case "5":
+      await sock.sendMessage(jid, {
+        text: "📞 Contact Us\n\nPhone: +91XXXXXXXXXX",
+      });
+      break;
+
+    default:
+      await sock.sendMessage(jid, {
+        text: getMenu(),
+      });
+      break;
+  }
 }
 
 module.exports = handleMessage;
