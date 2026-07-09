@@ -6,6 +6,7 @@ const {
 } = require("@whiskeysockets/baileys");
 
 const P = require("pino");
+const { setSocket } = require("./socket");
 
 const PHONE_NUMBER = "919493932631";
 
@@ -27,6 +28,9 @@ async function createConnection() {
     printQRInTerminal: false,
     syncFullHistory: false,
   });
+
+  // Save socket globally
+  setSocket(sock);
 
   sock.ev.on("creds.update", saveCreds);
 
