@@ -27,9 +27,12 @@ async function createConnection() {
     }
 
     if (qr) {
-      console.log("\n========== QR RECEIVED ==========\n");
-      console.log(qr);
-      console.log("\n===============================\n");
+      console.log("📱 Scan this QR Code:\n");
+      QRCode.generate(qr, { small: true });
+    }
+
+    if (connection === "close") {
+      console.log("❌ WhatsApp Disconnected");
     }
   });
 
