@@ -4,6 +4,8 @@ const {
   fetchLatestBaileysVersion,
 } = require("@whiskeysockets/baileys");
 
+const QRCode = require("qrcode-terminal");
+
 async function createConnection() {
   const { state, saveCreds } = await useMultiFileAuthState("./session");
 
