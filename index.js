@@ -1,7 +1,8 @@
 const express = require("express");
 const path = require("path");
 
-const { startBot, generatePairCode } = require("./src/bot");
+const { startBot } = require("./src/bot");
+const { generatePairCode } = require("./src/pairing");
 
 const app = express();
 
@@ -24,8 +25,6 @@ app.post("/pair", async (req, res) => {
                 message: "Phone number is required"
             });
         }
-
-        number = number.replace(/\D/g, "");
 
         const code = await generatePairCode(number);
 
