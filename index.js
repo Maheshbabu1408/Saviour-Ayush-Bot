@@ -1,38 +1,47 @@
 const express = require("express");
 const path = require("path");
 
-const { startBot } = require("./src/bot");
+const { startBot, generatePairCode } = require("./src/bot");
 
 const app = express();
 
 const PORT = process.env.PORT || 8000;
 
-// Parse JSON
 app.use(express.json());
-
-// Serve public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// Home Page
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Pair API (temporary)
 app.post("/pair", async (req, res) => {
+    try {
+        let { number } = req.body;
 
-    const { number } = req.body;
+        if (!number) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number is required"
+            });
+        }
 
-    if (!number) {
+        number = number.replace(/\D/g, "");
+
+        const code = await generatePairCode(number);
+
         return res.json({
-            error: "Phone number required"
+            success: true,
+            code
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return res.status(500).json({
+            success: false,
+            message: err.message
         });
     }
-
-    return res.json({
-        code: "Coming Soon 🚀"
-    });
-
 });
 
 app.listen(PORT, () => {
