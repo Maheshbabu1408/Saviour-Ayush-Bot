@@ -6,12 +6,15 @@ const {
   DisconnectReason,
 } = require("@whiskeysockets/baileys");
 
+const fs = require("fs");
 const P = require("pino");
 const { setSocket } = require("./socket");
 const handleMessage = require("./message");
 
+const SESSION_DIR = "./session";
+
 async function createConnection() {
-  const { state, saveCreds } = await useMultiFileAuthState("./session");
+  const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
 
   const { version } = await fetchLatestBaileysVersion();
 
@@ -32,6 +35,8 @@ async function createConnection() {
   // Save socket globally
   setSocket(sock);
 
+  let hasConnectedOnce = false;
+
   // Save credentials
   sock.ev.on("creds.update", saveCreds);
 
@@ -47,6 +52,7 @@ async function createConnection() {
     const { connection, lastDisconnect } = update;
 
     if (connection === "open") {
+      hasConnectedOnce = true;
       console.log("✅ WhatsApp Connected!");
     }
 
@@ -56,20 +62,33 @@ async function createConnection() {
 
       console.log(`❌ Connection Closed (code: ${statusCode || "unknown"})`);
 
-      if (loggedOut) {
-        // Session was invalidated (device removed from phone) -
-        // don't loop forever, a fresh pairing is required.
+      if (loggedOut && hasConnectedOnce) {
+        // A real logout of a previously-working session (device
+        // removed from phone). Don't loop forever - needs re-pairing.
         console.log("⚠️ Logged out. Delete ./session and re-pair.");
-      } else {
-        // Anything else (QR/pairing timeout, network blip, restart
-        // triggered by WhatsApp, etc.) - just reconnect.
-        console.log("🔄 Reconnecting in 5s...");
-        setTimeout(() => {
-          createConnection().catch((err) =>
-            console.error("Reconnect failed:", err)
-          );
-        }, 5000);
+        return;
       }
+
+      // Either a pairing/QR timeout (408) before ever connecting, or
+      // a corrupted half-written session from a failed pairing
+      // attempt (which often surfaces as a 401 right after). In both
+      // cases, wipe the stale session so the next attempt starts
+      // clean instead of retrying with broken credentials.
+      if (!hasConnectedOnce) {
+        try {
+          fs.rmSync(SESSION_DIR, { recursive: true, force: true });
+          console.log("🧹 Cleared stale session (never fully paired).");
+        } catch (err) {
+          console.error("Failed to clear session:", err);
+        }
+      }
+
+      console.log("🔄 Reconnecting in 5s...");
+      setTimeout(() => {
+        createConnection().catch((err) =>
+          console.error("Reconnect failed:", err)
+        );
+      }, 5000);
     }
   });
 
